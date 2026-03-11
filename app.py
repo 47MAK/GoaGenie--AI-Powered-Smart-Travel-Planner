@@ -1,5 +1,12 @@
 import streamlit as st
+from weather_api import get_weather
 from itinerary import generate_itinerary
+
+weather = get_weather()
+
+st.subheader("Current Weather in Goa")
+
+st.write(weather)
 
 # App title
 st.set_page_config(page_title="GoaGenie", page_icon="🌴")

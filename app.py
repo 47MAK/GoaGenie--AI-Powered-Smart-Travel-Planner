@@ -78,4 +78,4 @@ if st.button("Generate My Goa Trip"):
     st.write(itinerary)
 
 st.markdown("---")
-st.caption("GoaGenie AI Travel Planner • Built with Streamlit")
+st.caption("GoaGenie AI Travel Planner ")

@@ -1,11 +1,5 @@
 import json
-from openai import OpenAI
-
-client = OpenAI(
-    api_key="3wRPmTCH5hlcooOBHLgp4u1YpYsa55JcCuDRRwRhdbnVPINtiAdJ8bEibNCKpDS4B",
-    base_url="https://api.stepfun.com/v1"
-)
-
+import ollama
 
 def generate_itinerary(people, days, budget, kids, elders, food_pref, interests):
 
@@ -13,8 +7,6 @@ def generate_itinerary(people, days, budget, kids, elders, food_pref, interests)
         places = json.load(f)
 
     prompt = f"""
-You are an expert travel planner.
-
 Create a {days}-day travel itinerary for Goa.
 
 Travelers: {people}
@@ -27,28 +19,12 @@ Interests: {interests}
 Available places:
 {places}
 
-Generate a structured itinerary:
-
-Day 1
-Morning:
-Afternoon:
-Lunch:
-Evening:
-
-Also suggest famous Goan food.
+Generate a structured itinerary with morning, afternoon, lunch, and evening activities.
 """
 
-    try:
-        response = client.chat.completions.create(
-            model="step-1-8k",
-            messages=[
-                {"role": "system", "content": "You are a helpful travel planning assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7
-        )
+    response = ollama.chat(
+       model="phi3",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-        return response.choices[0].message.content
-
-    except Exception as e:
-        return f"Error generating itinerary: {str(e)}"
+    return response["message"]["content"]

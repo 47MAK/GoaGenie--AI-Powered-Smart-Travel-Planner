@@ -1,43 +1,54 @@
 import json
-import random
+from openai import OpenAI
 
-# Load Goa dataset
-with open("goa_places.json", "r") as f:
-    data = json.load(f)
-
-beaches = data["beaches"]
-attractions = data["attractions"]
-restaurants = data["restaurants"]
-foods = data["foods"]
+client = OpenAI(
+    api_key="3wRPmTCH5hlcooOBHLgp4u1YpYsa55JcCuDRRwRhdbnVPINtiAdJ8bEibNCKpDS4B",
+    base_url="https://api.stepfun.com/v1"
+)
 
 
 def generate_itinerary(people, days, budget, kids, elders, food_pref, interests):
 
-    itinerary = ""
+    with open("goa_places.json", "r") as f:
+        places = json.load(f)
 
-    itinerary += f"Trip Plan for {people} people for {days} days\n"
-    itinerary += f"Budget: {budget}\n\n"
+    prompt = f"""
+You are an expert travel planner.
 
-    for day in range(1, days + 1):
+Create a {days}-day travel itinerary for Goa.
 
-        itinerary += f"Day {day}\n"
+Travelers: {people}
+Budget: {budget}
+Kids travelling: {kids}
+Elders travelling: {elders}
+Food preference: {food_pref}
+Interests: {interests}
 
-        if "Beaches" in interests:
-            itinerary += f"Morning: Visit {random.choice(beaches)}\n"
-        else:
-            itinerary += f"Morning: Explore {random.choice(attractions)}\n"
+Available places:
+{places}
 
-        itinerary += f"Afternoon: Visit {random.choice(attractions)}\n"
+Generate a structured itinerary:
 
-        itinerary += f"Lunch: Eat at {random.choice(restaurants)}\n"
+Day 1
+Morning:
+Afternoon:
+Lunch:
+Evening:
 
-        itinerary += f"Evening: Relax at {random.choice(beaches)}\n"
+Also suggest famous Goan food.
+"""
 
-        itinerary += "\n"
+    try:
+        response = client.chat.completions.create(
+            model="step-1-8k",
+            messages=[
+                {"role": "system", "content": "You are a helpful travel planning assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
 
-    itinerary += "Must Try Goan Foods:\n"
+        return response.choices[0].message.content
 
-    for food in foods:
-        itinerary += f"- {food}\n"
-
-    return itinerary
+    except Exception as e:
+        return f"Error generating itinerary: {str(e)}"

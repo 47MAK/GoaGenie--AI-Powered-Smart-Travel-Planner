@@ -1,30 +1,70 @@
 import json
 import ollama
 
+
 def generate_itinerary(people, days, budget, kids, elders, food_pref, interests):
 
-    with open("goa_places.json", "r") as f:
-        places = json.load(f)
+    try:
+        # Load Goa places dataset
+        with open("goa_places.json", "r") as f:
+            places = json.load(f)
 
-    prompt = f"""
-Create a {days}-day travel itinerary for Goa.
+        # Reduce dataset size sent to model
+        beaches = places.get("beaches", [])
+        attractions = places.get("attractions", [])
+        restaurants = places.get("restaurants", [])
+        foods = places.get("foods", [])
 
+        prompt = f"""
+You are an expert travel planner.
+
+Create a concise {days}-day itinerary for Goa.
+
+Trip details:
 Travelers: {people}
 Budget: {budget}
-Kids travelling: {kids}
-Elders travelling: {elders}
+Kids: {kids}
+Elders: {elders}
 Food preference: {food_pref}
 Interests: {interests}
 
-Available places:
-{places}
+Suggested beaches: {beaches}
+Suggested attractions: {attractions}
+Suggested restaurants: {restaurants}
 
-Generate a structured itinerary with morning, afternoon, lunch, and evening activities.
+Format:
+
+Day 1
+Morning:
+Afternoon:
+Lunch:
+Evening:
+
+Day 2
+Morning:
+Afternoon:
+Lunch:
+Evening:
+
+Also recommend one famous Goan dish per day from:
+{foods}
+
+Limit the response to about 150 words.
 """
 
-    response = ollama.chat(
-       model="phi3",
-        messages=[{"role": "user", "content": prompt}]
-    )
+        # Faster Ollama generation
+        response = ollama.chat(
+            model="phi3",
+            messages=[{"role": "user", "content": prompt}],
+            options={
+                "num_predict": 200,   # limit output tokens (faster)
+                "temperature": 0.7
+            }
+        )
 
-    return response["message"]["content"]
+        itinerary = response["message"]["content"]
+
+        return itinerary
+
+    except Exception as e:
+        return f"Error generating itinerary: {str(e)}"

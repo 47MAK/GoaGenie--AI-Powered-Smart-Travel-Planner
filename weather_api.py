@@ -12,16 +12,10 @@ def get_weather():
         response = requests.get(url)
         data = response.json()
 
-        # Check if API returned valid data
-        if "main" in data and "weather" in data:
+        temp = data["main"]["temp"]
+        desc = data["weather"][0]["description"]
 
-            temperature = data["main"]["temp"]
-            weather = data["weather"][0]["description"]
+        return f"{temp}°C, {desc}"
 
-            return f"Current temperature in Goa: {temperature}°C | Weather: {weather}"
-
-        else:
-            return f"Weather data unavailable: {data.get('message','API error')}"
-
-    except Exception as e:
-        return f"Error fetching weather: {str(e)}"
+    except:
+        return "Weather data unavailable"

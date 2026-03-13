@@ -1,36 +1,39 @@
-import json
 import ollama
 
 
-def generate_itinerary(people, days, budget, kids, elders, food_pref, interests):
+def generate_itinerary(people, days, budget, kids_0_5, kids_6_10, elders, food_pref, interests):
 
-    try:
-        # Load Goa places dataset
-        with open("goa_places.json", "r") as f:
-            places = json.load(f)
+    if "Low" in budget:
+        budget_range = "₹1000–₹2500 per person per day"
+    elif "Medium" in budget:
+        budget_range = "₹2500–₹6000 per person per day"
+    else:
+        budget_range = "₹6000–₹15000+ per person per day"
 
-        # Reduce dataset size sent to model
-        beaches = places.get("beaches", [])
-        attractions = places.get("attractions", [])
-        restaurants = places.get("restaurants", [])
-        foods = places.get("foods", [])
+    prompt = f"""
+You are an expert Goa travel planner.
 
-        prompt = f"""
-You are an expert travel planner.
+Generate a COMPLETE {days}-day itinerary for Goa.
 
-Create a concise {days}-day itinerary for Goa.
 
-Trip details:
 Travelers: {people}
-Budget: {budget}
-Kids: {kids}
-Elders: {elders}
+Budget range: {budget_range}
 Food preference: {food_pref}
+
+Kids age 0-5: {kids_0_5}
+Kids age 6-10: {kids_6_10}
+Elders age 60+: {elders}
+
 Interests: {interests}
 
-Suggested beaches: {beaches}
-Suggested attractions: {attractions}
-Suggested restaurants: {restaurants}
+Rules:
+- You MUST generate exactly {days} days.
+- Do NOT stop early.
+- Respect vegetarian preference if selected.
+- Suggest kid-friendly places if children present.
+- Avoid physically demanding activities if elders present.
+- Activities must match the selected interests.
+- Keep recommendations within the specified budget range.
 
 Format:
 
@@ -40,31 +43,17 @@ Afternoon:
 Lunch:
 Evening:
 
-Day 2
-Morning:
-Afternoon:
-Lunch:
-Evening:
-
-Also recommend one famous Goan dish per day from:
-{foods}
-
-Limit the response to about 150 words.
+Mention if the activity is good for kids or elders.
+Limit response to about 200-250 words.
 """
 
-        # Faster Ollama generation
-        response = ollama.chat(
-            model="phi3",
-            messages=[{"role": "user", "content": prompt}],
-            options={
-                "num_predict": 200,   # limit output tokens (faster)
-                "temperature": 0.7
-            }
-        )
+    response = ollama.chat(
+        model="phi3",
+        messages=[{"role": "user", "content": prompt}],
+        options={
+            "num_predict": 800,
+            "temperature": 0.7
+        }
+    )
 
-        itinerary = response["message"]["content"]
-
-        return itinerary
-
-    except Exception as e:
-        return f"Error generating itinerary: {str(e)}"
+    return response["message"]["content"]
